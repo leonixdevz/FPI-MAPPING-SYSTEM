@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/* Leaflet CSS is imported here so the bundler picks it up.
+   The default markers rely on a relative image path which Vite breaks;
+   the fix in src/lib/leafletIconFix.ts handles that. */
+@import "leaflet/dist/leaflet.css";
+
+/* Design tokens — kept minimal. Add more as the UI demands. */
+:root {
+  --color-bg: oklch(0.99 0 0);
+  --color-fg: oklch(0.18 0 0);
+  --color-muted: oklch(0.55 0 0);
+  --color-brand: oklch(0.55 0.09 175);    /* teal-700ish */
+  --color-brand-fg: oklch(0.99 0 0);
+  --color-accent: oklch(0.65 0.16 50);    /* warm accent for map markers */
+  --color-border: oklch(0.92 0 0);
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  -webkit-font-smoothing: antialiased;
+}
