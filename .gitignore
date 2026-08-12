@@ -42,3 +42,8 @@ coverage
 
 # Plan / scratch
 *.tmp
+
+# Project assets — large original media stays out of the repo.
+# Curated copies are copied into public/media/ for the dev/preview server.
+data/
+public/media/
