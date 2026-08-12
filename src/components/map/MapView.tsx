@@ -35,6 +35,15 @@ import { MapBanner } from './MapBanner';
 import { Badge } from '../ui/Badge';
 import type { BoundaryState } from '../../services/studyAreaBoundary';
 
+/** Marker colour per feature type, so the Site features layer is readable at a glance. */
+const FEATURE_TYPE_COLORS: Record<SiteFeature['featureType'], string> = {
+  building: '#0f766e',
+  road: '#b45309',
+  facility: '#4f46e5',
+  open_space: '#15803d',
+  other: '#64748b',
+};
+
 interface MapViewProps {
   schools: School[];
   features: SiteFeature[];
@@ -102,7 +111,12 @@ export function MapView({
                   key={feature.id}
                   center={[feature.latitude, feature.longitude]}
                   radius={7}
-                  pathOptions={{ color: '#64748b', weight: 2, fillColor: '#94a3b8', fillOpacity: 0.8 }}
+                  pathOptions={{
+                    color: FEATURE_TYPE_COLORS[feature.featureType],
+                    weight: 2,
+                    fillColor: FEATURE_TYPE_COLORS[feature.featureType],
+                    fillOpacity: 0.8,
+                  }}
                 >
                   <Popup>
                     <div className="min-w-[150px]">

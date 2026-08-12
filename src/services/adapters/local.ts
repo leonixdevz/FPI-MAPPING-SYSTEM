@@ -25,7 +25,8 @@ import type { School, SchoolInput, ValidationIssue } from '../../types/school';
 import { validateSchoolInput } from '../../types/school';
 import type { Media, MediaInput } from '../../types/media';
 import { validateMediaInput } from '../../types/media';
-import type { SiteFeature } from '../../types/siteFeature';
+import type { SiteFeature, SiteFeatureInput } from '../../types/siteFeature';
+import { validateSiteFeatureInput } from '../../types/siteFeature';
 import type { Session } from '../../types/user';
 import type { SchoolsService } from '../schools';
 import type { MediaService } from '../media';
@@ -349,6 +350,14 @@ export const localMediaService: MediaService = {
   },
 };
 
+function assertValidSiteFeature(input: Partial<SiteFeatureInput>): void {
+  const issues = validateSiteFeatureInput(input);
+  if (issues.length > 0) {
+    const msg = issues.map((i) => `${i.field}: ${i.message}`).join('; ');
+    throw new Error(`Invalid site feature input — ${msg}`);
+  }
+}
+
 export const localSiteFeaturesService: SiteFeaturesService = {
   async list() {
     seedIfEmpty();
@@ -361,6 +370,7 @@ export const localSiteFeaturesService: SiteFeaturesService = {
   },
   async create(input) {
     seedIfEmpty();
+    assertValidSiteFeature(input);
     const now = nowIso();
     const feature: SiteFeature = {
       ...input,
@@ -379,6 +389,7 @@ export const localSiteFeaturesService: SiteFeaturesService = {
     const all = readCollection<SiteFeature>(KEYS.siteFeatures);
     const idx = all.findIndex((f) => f.id === id);
     if (idx === -1) throw new Error(`Site feature not found: ${id}`);
+    assertValidSiteFeature({ ...all[idx], ...input });
     const next: SiteFeature = {
       ...all[idx],
       ...input,

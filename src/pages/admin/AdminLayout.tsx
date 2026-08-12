@@ -8,6 +8,7 @@ import { cn } from '../../lib/utils';
 const ADMIN_NAV = [
   { to: '/admin', label: 'Dashboard', end: true },
   { to: '/admin/schools', label: 'Schools', end: false },
+  { to: '/admin/features', label: 'Site features', end: false },
   { to: '/admin/media', label: 'Media', end: false },
 ] as const;
 

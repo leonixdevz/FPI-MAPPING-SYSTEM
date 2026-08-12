@@ -386,6 +386,45 @@ describe('supabase media service', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Site features
+// ---------------------------------------------------------------------------
+
+describe('supabase site features service', () => {
+  it('create validates input before hitting the database', async () => {
+    const { client, from } = mockClient({ queryResult: () => ({ data: FEATURE_ROW, error: null }) });
+    await expect(
+      createSupabaseServices(client).siteFeatures.create({
+        name: '',
+        featureType: 'building',
+        description: '',
+        latitude: 6.8,
+        longitude: 3.09,
+        geometry: null,
+      }),
+    ).rejects.toThrow(/name/i);
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it('create inserts a snake_case row and maps the result', async () => {
+    const { client, from } = mockClient({ queryResult: () => ({ data: FEATURE_ROW, error: null }) });
+    const services = createSupabaseServices(client);
+    const created = await services.siteFeatures.create({
+      name: 'Building A',
+      featureType: 'building',
+      description: 'd',
+      latitude: 6.8,
+      longitude: 3.09,
+      geometry: null,
+    });
+    expect(created.id).toBe('f1');
+    const inserted = from.mock.results[0].value.insert.mock.calls[0][0];
+    expect(inserted).toEqual(
+      expect.objectContaining({ name: 'Building A', feature_type: 'building' }),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Auth
 // ---------------------------------------------------------------------------
 

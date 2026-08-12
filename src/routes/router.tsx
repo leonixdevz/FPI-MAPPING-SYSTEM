@@ -13,6 +13,7 @@ import { AdminSchools } from '../pages/admin/AdminSchools';
 import { AdminSchoolNew } from '../pages/admin/AdminSchoolNew';
 import { AdminSchoolEdit } from '../pages/admin/AdminSchoolEdit';
 import { AdminMedia } from '../pages/admin/AdminMedia';
+import { AdminSiteFeatures } from '../pages/admin/AdminSiteFeatures';
 
 // The map page pulls in Leaflet (~150 kB gzip). Route-level lazy
 // loading keeps it out of the main bundle so the rest of the app
@@ -65,6 +66,7 @@ export const router = createBrowserRouter([
       { path: 'schools/new', element: <AdminSchoolNew /> },
       { path: 'schools/:id/edit', element: <AdminSchoolEdit /> },
       { path: 'media', element: <AdminMedia /> },
+      { path: 'features', element: <AdminSiteFeatures /> },
     ],
   },
 ]);

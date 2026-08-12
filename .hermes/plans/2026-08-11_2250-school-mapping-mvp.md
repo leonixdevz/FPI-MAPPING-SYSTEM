@@ -225,6 +225,7 @@ The spec has 10 phases (Section 30). I keep those as milestones but break each i
 - [x] G4. Build `AdminSchoolEdit` form. Same validation. Pre-populated from current record.
 - [x] G5. Implement delete with confirm modal.
 - [x] G6. Empty state ("No schools yet") and loading state (spinner).
+- [x] G7. `AdminSiteFeatures` page — CRUD for site features (buildings, roads, facilities) with shared validation, a lazy click-to-place map picker, and per-type marker colours on the public map's Site features layer.
 - [ ] **Checkpoint:** Full school CRUD works against the local adapter. Validation rejects bad lat/lng.
 
 ### Phase H — Search + filter (covers spec Phase 6, Section 7)

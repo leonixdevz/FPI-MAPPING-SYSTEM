@@ -52,7 +52,7 @@ in the admin dashboard → it appears on the public map instantly.
 | **Study-area boundary** | Drop-in GeoJSON loader — validated, auto-drawn, auto-framed, with area computed from the polygon shown separately from the documented 898.116 ha |
 | **Public pages** | Home (live stats + media strip), Schools (search/filter + cards), School details, 404 + error boundary |
 | **Media** | Public gallery with tabs (satellite / drone images / drone videos / site photos); admin uploader (file or URL), list and delete |
-| **Admin** | Protected routes, dashboard with live stats, full school CRUD with validation, media management, one-click "Reset demo data" for demos |
+| **Admin** | Protected routes, dashboard with live stats, school CRUD, site-feature CRUD (buildings/roads/facilities with a click-to-place map picker), media management, one-click "Reset demo data" for demos |
 | **Data layer** | Local adapter (in-memory + localStorage) with cross-tab sync; same service interface a future Supabase adapter will implement |
 
 ### 1.4 Architecture & technology
@@ -187,8 +187,10 @@ code, find every TODO, and see exactly where real survey data plugs in.
    markers *dim* on the map (deliberate UX choice: keep spatial context).
 4. **Admin** — log in with demo credentials → dashboard → add a school with
    real-looking fields (validation rejects bad lat/lng — demo it) → it appears
-   on the public map. Delete with the confirm modal. "Reset demo data" restores
-   the seed.
+   on the public map. Then add a site feature (building/road/facility) by
+   clicking the map to place it → it appears on the map's Site features layer,
+   colour-coded by type. Delete with the confirm modal. "Reset demo data"
+   restores the seed.
 5. **Media** — gallery tabs; show the drone screencast and site captures; note
    they are non-georeferenced evidence.
 6. **Boundary (the showpiece)** — explain the drop-in: "when the survey team

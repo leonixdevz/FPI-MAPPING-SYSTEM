@@ -23,6 +23,7 @@ import { validateSchoolInput } from '../../types/school';
 import type { Media, MediaInput } from '../../types/media';
 import { validateMediaInput } from '../../types/media';
 import type { SiteFeature, SiteFeatureInput } from '../../types/siteFeature';
+import { validateSiteFeatureInput } from '../../types/siteFeature';
 import type { Session, UserRole } from '../../types/user';
 
 // ---------------------------------------------------------------------------
@@ -223,6 +224,13 @@ function assertValidMedia(input: Partial<MediaInput>): void {
   const issues = validateMediaInput(input);
   if (issues.length > 0) {
     throw new Error(`Invalid media input — ${issues.map((i) => `${i.field}: ${i.message}`).join('; ')}`);
+  }
+}
+
+function assertValidSiteFeature(input: Partial<SiteFeatureInput>): void {
+  const issues = validateSiteFeatureInput(input);
+  if (issues.length > 0) {
+    throw new Error(`Invalid site feature input — ${issues.map((i) => `${i.field}: ${i.message}`).join('; ')}`);
   }
 }
 
@@ -440,6 +448,7 @@ export function createSupabaseServices(client: SupabaseClient): SupabaseServices
       return data ? mapSiteFeatureRow(data) : null;
     },
     async create(input) {
+      assertValidSiteFeature(input);
       const { data, error } = await client
         .from('site_features')
         .insert(toSiteFeatureRow(input))
@@ -456,6 +465,7 @@ export function createSupabaseServices(client: SupabaseClient): SupabaseServices
         .maybeSingle();
       throwIfError(fetchError, 'Failed to load site feature.');
       if (!current) throw new Error(`Site feature not found: ${id}`);
+      assertValidSiteFeature({ ...mapSiteFeatureRow(current), ...input });
       const { data, error } = await client
         .from('site_features')
         .update(toSiteFeatureRow({ ...mapSiteFeatureRow(current), ...input }))

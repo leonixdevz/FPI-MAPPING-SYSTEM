@@ -10,7 +10,7 @@ This project follows a 35-section specification. The full implementation plan li
 
 ## Current status
 
-**The full MVP is built — including Phase K (Supabase).** Phases A–L of the implementation plan are complete: scaffold, type system, config, service adapters (local + Supabase), public pages (Home, Map, Schools, School details, Login), the Leaflet map with OSM + Esri satellite base layers and a layer control, school search/filter, admin authentication with CRUD for schools and media, the site-media gallery, and the GeoJSON study-area boundary loader. 80 unit tests pass and the production build is clean.
+**The full MVP is built — including Phase K (Supabase).** Phases A–L of the implementation plan are complete: scaffold, type system, config, service adapters (local + Supabase), public pages (Home, Map, Schools, School details, Login), the Leaflet map with OSM + Esri satellite base layers and a layer control, school search/filter, admin authentication with CRUD for schools, site features and media, the site-media gallery, and the GeoJSON study-area boundary loader. 80 unit tests pass and the production build is clean.
 
 The project now ships with **real project assets** in `data/` (48 site screenshots + a drone screencast video, provided 2026-08-11). They are screen captures with **no GPS/EXIF metadata**, so they are wired in as *site media* (a curated subset is seeded and copied to `public/media/`), not as georeferenced layers. See "Why no real coordinates" below.
 
