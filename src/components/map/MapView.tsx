@@ -30,8 +30,10 @@ import { SchoolMarker } from './SchoolMarker';
 import { StudyAreaLayer } from './StudyAreaLayer';
 import { MediaLayer } from './MediaLayer';
 import { FlyTo } from './FlyTo';
+import { FitBoundary } from './FitBoundary';
 import { MapBanner } from './MapBanner';
 import { Badge } from '../ui/Badge';
+import type { BoundaryState } from '../../services/studyAreaBoundary';
 
 interface MapViewProps {
   schools: School[];
@@ -41,6 +43,8 @@ interface MapViewProps {
   selectedSchoolId: string | null;
   /** Coordinate to fly to when a sidebar item is clicked. */
   flyTarget: { lat: number; lng: number } | null;
+  /** Study-area boundary load state (from useStudyAreaBoundary). */
+  boundaryState: BoundaryState;
   onSelectSchool: (id: string | null) => void;
 }
 
@@ -58,6 +62,7 @@ export function MapView({
   filters,
   selectedSchoolId,
   flyTarget,
+  boundaryState,
   onSelectSchool,
 }: MapViewProps) {
   return (
@@ -87,7 +92,7 @@ export function MapView({
           </LayersControl.BaseLayer>
 
           <LayersControl.Overlay name="Study area (898.116 ha)" checked>
-            <StudyAreaLayer />
+            <StudyAreaLayer boundary={boundaryState.boundary} />
           </LayersControl.Overlay>
 
           <LayersControl.Overlay name="Site features" checked>
@@ -132,9 +137,10 @@ export function MapView({
 
         <MediaLayer media={media} />
         <FlyTo target={flyTarget} />
+        <FitBoundary boundary={boundaryState.boundary} />
       </MapContainer>
 
-      <MapBanner />
+      <MapBanner boundaryState={boundaryState} />
     </div>
   );
 }

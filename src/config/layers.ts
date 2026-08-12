@@ -19,7 +19,7 @@ export type DataSource =
   | 'openstreetmap'    // base tiles
   | 'esri-satellite'   // public Esri imagery (no API key)
   | 'schools-service'  // src/services/schools.ts
-  | 'study-area-config'// src/config/studyArea.ts (boundary)
+  | 'study-area-boundary' // src/services/studyAreaBoundary.ts (fetched GeoJSON file)
   | 'site-features-service' // src/services/siteFeatures.ts
   | 'media-service';   // src/services/media.ts (renders only items with valid coords)
 
@@ -76,7 +76,7 @@ export const MAP_LAYERS: readonly MapLayerConfig[] = [
     label: 'Study area (898.116 ha)',
     type: 'polygon',
     enabled: true,
-    dataSource: 'study-area-config',
+    dataSource: 'study-area-boundary',
     order: 30,
     defaultVisible: true,
   },

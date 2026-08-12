@@ -1,44 +1,43 @@
 import { Polygon } from 'react-leaflet';
-import { studyArea } from '../../config/studyArea';
+import type { ParsedBoundary } from '../../lib/geoBoundary';
+
+interface StudyAreaLayerProps {
+  /** Loaded, validated survey boundary — null until the file exists. */
+  boundary: ParsedBoundary | null;
+}
 
 /**
  * Study-area boundary layer.
  *
- * TODO: REQUIRED PROJECT GIS DATA
- * ---------------------------------
- * `studyArea.boundary` is null until the real property boundary is
- * supplied (KML/KMZ/GeoJSON/shapefile or a verified survey). Per the
- * project spec (Sections 20, 35) we must NOT draw an arbitrary polygon
- * and label it "898.116 hectares" — that value is a documented constant
- * (src/config/studyArea.ts), not something derived from a polygon.
+ * Renders the real survey boundary once it is supplied. The boundary
+ * comes from public/data/study-area-boundary.geojson, fetched and
+ * validated by src/services/studyAreaBoundary.ts. Until the file exists
+ * the layer renders nothing, but the toggle in the layer control stays
+ * visible so reviewers can see what *would* render.
  *
- * When the boundary arrives:
- *   1. Set `studyArea.boundary` to a GeoJSON Polygon in [lng, lat]
- *      order in src/config/studyArea.ts.
- *   2. This component picks it up automatically — no code changes.
- *
- * Until then the layer renders nothing, but the toggle in the layer
- * control stays visible so reviewers can see what *would* render.
+ * Per spec Sections 20 and 35 we never draw an arbitrary polygon and
+ * label it "898.116 hectares" — that value is a documented constant
+ * (src/config/studyArea.ts), shown separately from the polygon's own
+ * computed area.
  */
-export function StudyAreaLayer() {
-  const { boundary } = studyArea;
+export function StudyAreaLayer({ boundary }: StudyAreaLayerProps) {
   if (!boundary) return null;
 
-  // GeoJSON coordinates are [lng, lat]; Leaflet wants [lat, lng].
-  const positions = boundary.coordinates.map((ring) =>
-    ring.map(([lng, lat]) => [lat, lng] as [number, number]),
-  );
-
   return (
-    <Polygon
-      positions={positions}
-      pathOptions={{
-        color: '#0f766e',
-        weight: 2,
-        fillColor: '#0f766e',
-        fillOpacity: 0.12,
-        dashArray: '6 4',
-      }}
-    />
+    <>
+      {boundary.polygons.map((polygon, index) => (
+        <Polygon
+          key={index}
+          positions={polygon}
+          pathOptions={{
+            color: '#0f766e',
+            weight: 2,
+            fillColor: '#0f766e',
+            fillOpacity: 0.12,
+            dashArray: '6 4',
+          }}
+        />
+      ))}
+    </>
   );
 }

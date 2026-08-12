@@ -45,5 +45,10 @@ coverage
 
 # Project assets — large original media stays out of the repo.
 # Curated copies are copied into public/media/ for the dev/preview server.
-data/
+# The survey boundary GeoJSON (public/data/study-area-boundary.geojson)
+# is also gitignored — it is dropped in locally once obtained; only the
+# drop-in instructions (public/data/README.md) are committed.
+/data/
 public/media/
+public/data/*
+!public/data/README.md

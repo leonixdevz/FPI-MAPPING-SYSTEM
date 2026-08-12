@@ -51,7 +51,23 @@ Demo admin login (local backend): `admin@school.local` / `admin123` (set via `VI
 
 The spec is explicit (Sections 20, 33, 35) that the system must NOT fabricate coordinates, site boundary, building locations, roads, facility locations, land measurements, or school locations. The supplied assets in `data/` were inspected: all 48 PNGs have **zero EXIF/GPS metadata** and the MP4 has **no GPS track** (`ffprobe`/PIL checks), so they are screen captures — usable as site media, not as georeferenced data. Every coordinate is therefore marked with a `TODO: REQUIRED PROJECT GIS DATA` comment and the map centres on a clearly-labelled `TEMPORARY_CENTRE` constant.
 
-This is a feature, not a gap. A defence panel can see exactly where real data plugs in: `src/config/studyArea.ts` (centre + boundary), `src/config/layers.ts` (layer wiring), and the `StudyAreaLayer` component.
+This is a feature, not a gap. A defence panel can see exactly where real data plugs in: the boundary loader in `src/services/studyAreaBoundary.ts`, which auto-renders a WGS84 GeoJSON file dropped at `public/data/study-area-boundary.geojson` (see next section), `src/config/studyArea.ts` (temporary centre), and `src/config/layers.ts` (layer wiring).
+
+## Wiring in the real study-area boundary
+
+The map is ready to render the real property boundary the moment the survey data is obtained — no code changes or rebuilds.
+
+1. Export / convert the survey boundary to **WGS84 GeoJSON** (Polygon, MultiPolygon, Feature, or FeatureCollection; positions `[lng, lat]`, EPSG:4326) and save it as `public/data/study-area-boundary.geojson`.
+2. Refresh the app.
+
+The map then draws the polygon, auto-frames to it, and replaces the amber "temporary map centre" banner with a teal confirmation showing the area **computed from the polygon** — kept deliberately separate from the documented 898.116 ha value, which remains a stated figure from the brief.
+
+```bash
+# Shapefile (EPSG:32631 example) → WGS84 GeoJSON
+ogr2ogr -f GeoJSON -t_srs EPSG:4326 public/data/study-area-boundary.geojson input.shp
+```
+
+Full format notes and conversion commands: [`public/data/README.md`](./public/data/README.md).
 
 ## Project data
 

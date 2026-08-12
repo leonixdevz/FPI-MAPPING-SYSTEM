@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useSchools } from '../hooks/useSchools';
 import { useMedia } from '../hooks/useMedia';
 import { useSiteFeatures } from '../hooks/useSiteFeatures';
+import { useStudyAreaBoundary } from '../hooks/useStudyAreaBoundary';
 import { useDebounce } from '../hooks/useDebounce';
 import type { SchoolFilters } from '../lib/schoolFilters';
 import {
@@ -21,6 +22,7 @@ export function MapPage() {
   const { schools, loading } = useSchools({ publicOnly: true });
   const { media } = useMedia({ publicOnly: true });
   const { features } = useSiteFeatures();
+  const boundaryState = useStudyAreaBoundary();
   const [searchParams] = useSearchParams();
   const handledSchoolParam = useRef(false);
 
@@ -109,6 +111,7 @@ export function MapPage() {
           filters={effectiveFilters}
           selectedSchoolId={selectedSchoolId}
           flyTarget={flyTarget}
+          boundaryState={boundaryState}
           onSelectSchool={setSelectedSchoolId}
         />
         </ErrorBoundary>

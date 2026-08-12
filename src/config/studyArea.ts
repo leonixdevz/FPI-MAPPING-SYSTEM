@@ -13,12 +13,13 @@
  * reviewer or defence panel can find it instantly.
  *
  * When the actual boundary becomes available:
- *   1. Replace TEMPORARY_CENTRE with the real site centroid (a single
- *      point that represents the centroid of the supplied boundary).
- *   2. Add a `boundary: GeoJSON.Polygon` field below and populate it
- *      from the supplied boundary file.
- *   3. The `studyAreaLayer` in src/config/layers.ts will pick the new
- *      field up automatically (no component changes required).
+ *   1. Export/convert the survey boundary to WGS84 GeoJSON and save it
+ *      at public/data/study-area-boundary.geojson.
+ *   2. Refresh the app. The loader (src/services/studyAreaBoundary.ts)
+ *      fetches, validates and renders the polygon, and the map re-frames
+ *      to it automatically — no component changes required.
+ *   3. Until the file exists the map opens at TEMPORARY_CENTRE and the
+ *      amber banner below stays visible.
  */
 
 /** Display name for the project. */
@@ -68,21 +69,16 @@ export interface StudyArea {
   areaSquareKm: number;
   location: string;
   /**
-   * The centre point the map opens on. Until real GIS data is supplied
-   * this points at TEMPORARY_CENTRE. Once replaced, the map and any
-   * "study area" displays pick it up automatically.
+   * The centre point the map opens on. Until a real boundary file is
+   * loaded (public/data/study-area-boundary.geojson) this points at
+   * TEMPORARY_CENTRE. Once the boundary is loaded, the map re-frames to
+   * the polygon automatically.
    */
   centre: {
     lat: number;
     lng: number;
     label: string;
   };
-  /**
-   * Real boundary polygon, or null. The MVP leaves this null and renders
-   * nothing for the study-area layer. When supplied, it should be a
-   * valid GeoJSON Polygon in [lng, lat] order (GeoJSON spec).
-   */
-  boundary: GeoJSON.Polygon | null;
 }
 
 export const studyArea: StudyArea = {
@@ -91,7 +87,6 @@ export const studyArea: StudyArea = {
   areaSquareKm: STUDY_AREA_SQUARE_KM,
   location: STUDY_AREA_LOCATION,
   centre: TEMPORARY_CENTRE,
-  boundary: null,
 };
 
 /**
@@ -99,4 +94,4 @@ export const studyArea: StudyArea = {
  * is still temporary. Keep this visible until the centre is replaced.
  */
 export const TEMPORARY_CENTRE_BANNER =
-  'Map centre is temporary — replace with real survey coordinates (TODO: REQUIRED PROJECT GIS DATA)';
+  'Temporary map centre — add the survey boundary at data/study-area-boundary.geojson to load the real boundary';

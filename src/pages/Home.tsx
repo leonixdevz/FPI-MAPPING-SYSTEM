@@ -131,9 +131,9 @@ export function Home() {
             The {formatHectares(STUDY_AREA_HECTARES)}-hectare figure is the documented study-area
             value from the project specification. The map centre is a clearly-labelled temporary
             reference point; no coordinates, boundary polygon or school positions are fabricated.
-            Real survey data (GeoJSON/KML boundary, georeferenced imagery) plugs in at{' '}
-            <code className="rounded bg-[var(--color-border)]/60 px-1">src/config/studyArea.ts</code>{' '}
-            when it is supplied.
+            Real survey data (a WGS84 GeoJSON boundary file) plugs in at{' '}
+            <code className="rounded bg-[var(--color-border)]/60 px-1">public/data/study-area-boundary.geojson</code>{' '}
+            when it is supplied — no code changes needed.
           </p>
         </Card>
       </Section>
