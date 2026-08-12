@@ -40,6 +40,11 @@ coverage
 # TypeScript incremental build cache
 *.tsbuildinfo
 
+# Supabase CLI (local stack + pull artifacts)
+supabase/.temp
+supabase/.branches
+supabase/.env.local
+
 # Plan / scratch
 *.tmp
 

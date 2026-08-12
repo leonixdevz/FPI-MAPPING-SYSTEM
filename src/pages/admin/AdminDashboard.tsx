@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useSchools } from '../../hooks/useSchools';
 import { useMedia } from '../../hooks/useMedia';
 import { useSiteFeatures } from '../../hooks/useSiteFeatures';
-import { resetLocalData } from '../../services';
+import { resetData } from '../../services';
 import {
   STUDY_AREA_HECTARES,
   STUDY_AREA_LOCATION,
@@ -29,11 +29,15 @@ export function AdminDashboard() {
     { label: 'Study area (documented)', value: `${formatHectares(STUDY_AREA_HECTARES)} ha`, loading: false },
   ];
 
-  const handleReset = () => {
-    resetLocalData();
+  const handleReset = async () => {
     setConfirmReset(false);
-    showToast('Demo data reset — re-seeded.', 'success');
-    window.location.reload();
+    try {
+      await resetData();
+      showToast('Demo data reset — re-seeded.', 'success');
+      window.location.reload();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Reset failed.', 'error');
+    }
   };
 
   return (
@@ -94,8 +98,8 @@ export function AdminDashboard() {
       <Card className="border-amber-200 bg-amber-50/50">
         <h2 className="font-semibold text-[var(--color-fg)]">Development tools</h2>
         <p className="mt-1 text-sm text-[var(--color-muted)]">
-          Clears all locally stored records (schools, media, site features, session) and re-seeds
-          the demo data. Useful for resetting the defence demo.
+          Clears all records in the active data store (local browser storage or the Supabase
+          database) and re-seeds the demo data. Useful for resetting the defence demo.
         </p>
         <div className="mt-3">
           <Button variant="danger" size="sm" onClick={() => setConfirmReset(true)}>
@@ -120,8 +124,8 @@ export function AdminDashboard() {
         }
       >
         <p className="text-sm text-[var(--color-fg)]">
-          This permanently deletes all locally stored records in this browser and restores the
-          seeded demo school and media. This cannot be undone.
+          This permanently deletes all records in the active data store and restores the seeded
+          demo school and media. This cannot be undone.
         </p>
       </Modal>
     </div>

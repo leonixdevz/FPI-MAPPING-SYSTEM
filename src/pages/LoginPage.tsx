@@ -79,7 +79,10 @@ export function LoginPage() {
           <strong className="font-semibold text-[var(--color-fg)]">Demo credentials</strong> — set
           via <code>VITE_DEMO_ADMIN_EMAIL</code> / <code>VITE_DEMO_ADMIN_PASSWORD</code> in your{' '}
           <code>.env</code>. Defaults: <code>admin@school.local</code> / <code>admin123</code>.
-          <span className="mt-1 block">This is local-only authentication; Supabase Auth replaces it in Phase K.</span>
+          <span className="mt-1 block">
+            With the Supabase backend (<code>VITE_DATA_BACKEND=supabase</code>) authentication uses
+            Supabase Auth — create the administrator user in the Supabase dashboard.
+          </span>
         </div>
       </Card>
 

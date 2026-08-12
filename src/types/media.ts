@@ -51,7 +51,14 @@ export interface Media {
   createdAt: string;
 }
 
-export type MediaInput = Omit<Media, 'id' | 'createdAt'>;
+export type MediaInput = Omit<Media, 'id' | 'createdAt'> & {
+  /**
+   * Optional raw file picked from disk. The Supabase adapter uploads it
+   * to Storage and stores the resulting public URL in fileUrl; the local
+   * adapter ignores it (file picks become session-only object URLs).
+   */
+  file?: File;
+};
 
 export interface ValidationIssue_Media {
   field: keyof MediaInput;

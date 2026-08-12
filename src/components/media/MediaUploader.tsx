@@ -29,6 +29,7 @@ export function MediaUploader({ onCreated }: MediaUploaderProps) {
   const [mode, setMode] = useState<SourceMode>('url');
   const [url, setUrl] = useState('');
   const [fileName, setFileName] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [objectUrl, setObjectUrl] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
@@ -52,6 +53,7 @@ export function MediaUploader({ onCreated }: MediaUploaderProps) {
     const nextUrl = URL.createObjectURL(file);
     setObjectUrl(nextUrl);
     setFileName(file.name);
+    setSelectedFile(file);
     if (!title) setTitle(file.name.replace(/\.[^.]+$/, '').replace(/_/g, ' '));
   };
 
@@ -68,6 +70,9 @@ export function MediaUploader({ onCreated }: MediaUploaderProps) {
       longitude: longitude === '' ? null : Number(longitude),
       featureId: null,
       isPublic,
+      // The Supabase adapter uploads this file to Storage and replaces
+      // fileUrl with the public URL; the local adapter ignores it.
+      file: selectedFile ?? undefined,
     };
 
     const validation = validateMediaInput(input);
@@ -91,6 +96,7 @@ export function MediaUploader({ onCreated }: MediaUploaderProps) {
         setObjectUrl('');
       }
       setFileName('');
+      setSelectedFile(null);
       setIssues([]);
     } finally {
       setSubmitting(false);
@@ -166,8 +172,8 @@ export function MediaUploader({ onCreated }: MediaUploaderProps) {
               />
               {fileName ? (
                 <p className="text-xs text-[var(--color-muted)]">
-                  Selected: {fileName} — stored as an in-session URL (local backend has no storage
-                  server yet).
+                  Selected: {fileName} — uploaded to Supabase Storage with the Supabase backend,
+                  or kept as an in-session URL with the local backend.
                 </p>
               ) : null}
               {issueFor('fileUrl') ? (

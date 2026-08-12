@@ -306,8 +306,12 @@ export const localMediaService: MediaService = {
     seedIfEmpty();
     assertValidMedia(input);
     const now = nowIso();
+    // `file` is a storage-only transport for the Supabase adapter; it is
+    // never persisted by the local adapter (a File is not JSON-serializable).
+    const { file: _file, ...row } = input;
+    void _file;
     const media: Media = {
-      ...input,
+      ...row,
       id: generateId(),
       createdAt: now,
     };
@@ -322,8 +326,10 @@ export const localMediaService: MediaService = {
     const all = readCollection<Media>(KEYS.media);
     const idx = all.findIndex((m) => m.id === id);
     if (idx === -1) throw new Error(`Media not found: ${id}`);
-    assertValidMedia({ ...all[idx], ...input });
-    const next: Media = { ...all[idx], ...input, id: all[idx].id, createdAt: all[idx].createdAt };
+    const { file: _file, ...patch } = input;
+    void _file;
+    assertValidMedia({ ...all[idx], ...patch });
+    const next: Media = { ...all[idx], ...patch, id: all[idx].id, createdAt: all[idx].createdAt };
     all[idx] = next;
     writeCollection(KEYS.media, all);
     emit(KEYS.media);

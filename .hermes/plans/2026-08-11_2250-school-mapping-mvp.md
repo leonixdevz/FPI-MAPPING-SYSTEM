@@ -2,7 +2,7 @@
 
 > **For Hermes:** This plan describes a checkpointed build of an academic MVP. The user is an ND2 Computer Science student preparing for a project defense. **Do not invent geographic facts.** Every coordinate, boundary, and study-area shape must be marked `TODO: REQUIRED PROJECT GIS DATA` until the student supplies real data. The system is designed to function with that data missing.
 >
-> **Status (2026-08-12): Phases A–J and L are complete.** The user supplied real assets in `data/` (48 PNG screenshots + 1 drone screencast MP4, all screen captures with no GPS metadata). They are wired in as site media (curated subset seeded + served from `public/media/`), not georeferenced layers. Phase K (Supabase) remains deferred by user choice. See "Build Status" below.
+> **Status (2026-08-12): Phases A–L are complete, including Phase K (Supabase).** The user supplied real assets in `data/` (48 PNG screenshots + 1 drone screencast MP4, all screen captures with no GPS metadata). They are wired in as site media (curated subset seeded + served from `public/media/`), not georeferenced layers. Phase K shipped the Supabase adapter, SQL migrations (schema/RLS/storage/seed) and storage-backed media uploads — the local adapter remains the default until a real project is configured. See "Build Status" below.
 
 **Goal:** Build a runnable, defensible interactive school mapping MVP that satisfies the supplied 35-section specification, with real geographic data slotted in by TODO markers that the student can replace once they have the actual project GIS assets.
 
@@ -17,17 +17,17 @@
 - Package manager: pnpm
 - Deployment: Vercel/Netlify free tier (deferred — not part of MVP acceptance)
 
-**Working directory:** `/home/leonix/Documents/School-Mapping-System/` (project built — Phases A–J, L done; K deferred)
+**Working directory:** `/home/leonix/Documents/School-Mapping-System/` (project built — Phases A–L done)
 
 ---
 
 ## Current Context / Assumptions
 
-- **Built.** Phases A–J and L are implemented, tested (36 vitest tests) and verified in a browser with no console errors.
+- **Built.** Phases A–L are implemented, tested (80 vitest tests) and verified in a browser with no console errors.
 - **Data now supplied.** `data/` contains 48 PNG screenshots (1600×868; one 797×522) and `Screencast from 2026-08-11 22-20-32.mp4` (H.264 1600×900, ~170 s). Inspection with PIL + ffprobe found **no EXIF/GPS metadata anywhere** — they are screen captures, not georeferenced assets. Per spec Sections 12, 20 and 35 they are used as site media with null coordinates; a curated subset (the video + 5 screenshots) is seeded and copied to `public/media/` (gitignored).
 - The student has not provided: real satellite imagery, drone photos with EXIF GPS, KML/KMZ/GeoJSON/Shapefile, GPX, or verified site coordinates. Per spec Section 20 and 35, we treat this as a known state and build the surrounding system without fabricating geography.
 - The 898.116-hectare land area is a single documented value supplied in the spec (Section 1, 21). It is stored as a typed `studyArea` config constant, NOT derived from a polygon.
-- Supabase is not configured locally. The user chose "no Supabase — local-only mock for now." A service-layer adapter pattern is used so the Supabase client can replace the mock without touching components (Phase K).
+- Supabase is not configured locally (no Docker here, so the local stack was not run). Phase K is implemented: `supabase/migrations/` (schema, RLS, storage, seed) plus a Supabase adapter unit-tested against a mocked client. To go live: create a project, apply the migrations, create the admin Auth user, set `VITE_DATA_BACKEND=supabase` + keys.
 - Package manager is pnpm (Node 26, pnpm 11, confirmed in shell).
 - The full build was executed in one pass on 2026-08-12 at the user's request ("follow the hermes plan and use the provided data").
 
@@ -256,16 +256,16 @@ The spec has 10 phases (Section 30). I keep those as milestones but break each i
 - [x] J6. Keyboard: Esc closes modals, Enter submits forms, Tab order logical.
 - [ ] **Checkpoint:** Lighthouse a11y score ≥ 90 on home and map pages. No console warnings.
 
-### Phase K — Supabase wiring (covers spec Phase 2) — DEFERRED
+### Phase K — Supabase wiring (covers spec Phase 2) — DONE 2026-08-12
 
-The user said "no Supabase for now." This phase is documented but not built until the user says so. It will:
+Implemented on request ("real multi-user persistence"). Files live under `supabase/migrations/` (0001 schema → 0002 rls → 0003 storage → 0004 seed) so they can be pasted into the project's SQL editor in order, or applied with the CLI (`npx supabase start` / `db push`, requires Docker).
 
-- [ ] K1. Write `supabase/schema.sql` matching the types (Section 14).
-- [ ] K2. Write `supabase/rls.sql` with: public read on `is_public = true` rows; admin full read/write; no anon writes.
-- [ ] K3. Write `supabase/seed.sql` with one demo school flagged TODO.
-- [ ] K4. Implement `src/services/adapters/supabase.ts` against the same interfaces as the local adapter.
-- [ ] K5. Document in README how to run Supabase locally (`npx supabase start`).
-- [ ] K6. Switching is `VITE_DATA_BACKEND=supabase` + `.env` keys.
+- [x] K1. `supabase/migrations/0001_schema.sql` — admins, schools, media, site_features tables + constraints + updated_at triggers.
+- [x] K2. `supabase/migrations/0002_rls.sql` — public read on `is_public = true` rows; admin full read/write via `is_admin()` email allow-list; no anon writes; locked-down admins table.
+- [x] K3. `supabase/migrations/0004_seed.sql` — demo admin email, one placeholder school flagged TODO, curated media; guarded `reset_demo_data()` RPC powers the dashboard reset.
+- [x] K4. `src/services/adapters/supabase.ts` — implements all four service interfaces (snake_case/camelCase mappers, media upload to the `school-media` Storage bucket, session/role mapping via `is_admin()`). Unit-tested against a mocked client (22 tests).
+- [x] K5. README "Running with Supabase (Phase K)" — CLI + dashboard instructions.
+- [x] K6. Switching is `VITE_DATA_BACKEND=supabase` + `.env` keys (`src/services/index.ts`).
 
 ### Phase L — Testing + acceptance (covers spec Phase 10, Section 31)
 

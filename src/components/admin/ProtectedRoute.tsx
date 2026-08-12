@@ -29,5 +29,21 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to={`/login?next=${next}`} replace />;
   }
 
+  // Signed in but not on the administrator list (Supabase backend): the
+  // RLS policies would reject their writes anyway, so block the UI too.
+  if (session.user.role !== 'admin') {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center px-4">
+        <div className="max-w-md rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+          <h1 className="text-lg font-semibold text-red-900">Not an administrator</h1>
+          <p className="mt-2 text-sm text-red-800">
+            Your account is signed in, but it is not on the administrator list. Only
+            administrators can manage schools and media.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return <>{children}</>;
 }

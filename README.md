@@ -10,7 +10,7 @@ This project follows a 35-section specification. The full implementation plan li
 
 ## Current status
 
-**The full MVP is built.** Phases A–J and L of the implementation plan are complete: scaffold, type system, config, local service adapter (localStorage, no Supabase needed), public pages (Home, Map, Schools, School details, Login), the Leaflet map with OSM + Esri satellite base layers and a layer control, school search/filter, admin authentication with CRUD for schools and media, and the site-media gallery. 36 unit tests pass and the production build is clean.
+**The full MVP is built — including Phase K (Supabase).** Phases A–L of the implementation plan are complete: scaffold, type system, config, service adapters (local + Supabase), public pages (Home, Map, Schools, School details, Login), the Leaflet map with OSM + Esri satellite base layers and a layer control, school search/filter, admin authentication with CRUD for schools and media, the site-media gallery, and the GeoJSON study-area boundary loader. 80 unit tests pass and the production build is clean.
 
 The project now ships with **real project assets** in `data/` (48 site screenshots + a drone screencast video, provided 2026-08-11). They are screen captures with **no GPS/EXIF metadata**, so they are wired in as *site media* (a curated subset is seeded and copied to `public/media/`), not as georeferenced layers. See "Why no real coordinates" below.
 
@@ -29,10 +29,27 @@ Build, preview & test:
 ```bash
 pnpm build                 # type-check + production bundle to dist/
 pnpm preview               # serve dist/ locally
-pnpm test                  # vitest unit tests (36 tests)
+pnpm test                  # vitest unit tests (80 tests)
 ```
 
 Demo admin login (local backend): `admin@school.local` / `admin123` (set via `VITE_DEMO_ADMIN_EMAIL` / `VITE_DEMO_ADMIN_PASSWORD` in `.env`).
+
+## Running with Supabase (Phase K)
+
+The app ships with two data backends; the default (`local`) needs nothing but a browser. To use **real multi-user persistence**:
+
+1. Create a free Supabase project.
+2. Apply the SQL migrations in `supabase/migrations/` in order — 0001 schema → 0002 RLS → 0003 storage → 0004 seed. Paste them into the project's SQL editor, or run them locally with the Supabase CLI (requires Docker): `npx supabase init` once to generate `supabase/config.toml`, then `npx supabase start` and `npx supabase db push`.
+3. Create the administrator in **Auth → Users → Add user** using an email that is in the `admins` table (the seed adds `admin@school.local`).
+4. Copy `.env.example` → `.env` and set:
+   ```bash
+   VITE_DATA_BACKEND=supabase
+   VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+   VITE_SUPABASE_ANON_KEY=<anon key>
+   ```
+5. `pnpm dev` — schools, media and site features now live in Postgres; media file uploads go to the `school-media` Storage bucket; the admin dashboard's **Reset demo data** button calls the guarded `reset_demo_data()` RPC.
+
+**Security model (Row Level Security):** anonymous visitors can read only `is_public = true` rows; administrators (emails in the `admins` table) have full read/write; nothing can be written anonymously. To grant or revoke admin access, add/remove emails in the `admins` table.
 
 ## Tech stack
 
@@ -43,8 +60,8 @@ Demo admin login (local backend): `admin@school.local` / `admin123` (set via `VI
 | Routing          | react-router-dom 7                       |
 | Map              | Leaflet 1.9 + react-leaflet 5             |
 | Tiles            | OpenStreetMap (no API key)                |
-| Backend (later)  | Supabase (Postgres + Auth + Storage)      |
-| Local mock (now) | In-memory + localStorage adapter          |
+| Backend (optional) | Supabase (Postgres + Auth + Storage) — switch with `VITE_DATA_BACKEND=supabase` |
+| Local default    | In-memory + localStorage adapter (no Supabase needed) |
 | Package manager  | pnpm 11                                  |
 
 ## Why no real coordinates (yet)
@@ -98,18 +115,18 @@ src/
 ├── types/                # (Phase B)
 ├── config/               # (Phase B — studyArea, layers, map config)
 └── hooks/                # (Phases C, H)
-supabase/                 # (Phase K — schema.sql, rls.sql, seed.sql)
+supabase/migrations/      # (Phase K — schema, RLS, storage, seed)
 ```
 
 ## Environment variables
 
-See [`.env.example`](./.env.example). The defaults work for local development. When Supabase is wired (Phase K), add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to your local `.env` (which is gitignored).
+See [`.env.example`](./.env.example). The defaults work for local development. To use the Supabase backend, set `VITE_DATA_BACKEND=supabase` plus `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in your local `.env` (which is gitignored).
 
 ## Development workflow
 
 1. Each phase ends with a **checkpoint**: I run `pnpm build`, start the dev server, curl it, and report what works. You can stop me or redirect me at any checkpoint.
 2. Geography is configuration, not code. The single source of truth for the 898.116 ha value and the temporary centre is `src/config/studyArea.ts`.
-3. Every data call goes through a service interface (`src/services/*.ts`) so swapping local-only mock → Supabase later is one file change.
+3. Every data call goes through a service interface (`src/services/*.ts`). Two adapters exist (local + Supabase); `VITE_DATA_BACKEND` picks the active one.
 
 ## License
 
