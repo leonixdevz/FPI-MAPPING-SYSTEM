@@ -27,3 +27,57 @@ body {
   color: var(--color-fg);
   -webkit-font-smoothing: antialiased;
 }
+
+/* ------------------------------------------------------------------ */
+/* Custom Leaflet marker (divIcon) — teardrop pin with initial letter. */
+/* The icon body is built from a rotated square; the inner span is     */
+/* counter-rotated so the letter stays upright.                        */
+/* ------------------------------------------------------------------ */
+.sms-pin {
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--color-brand);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sms-pin span {
+  transform: rotate(45deg);
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.sms-pin--selected {
+  background: var(--color-accent);
+  width: 36px;
+  height: 36px;
+  box-shadow:
+    0 0 0 3px rgb(255 255 255 / 0.75),
+    0 2px 8px rgb(0 0 0 / 0.4);
+}
+
+.sms-pin--selected span {
+  font-size: 14px;
+}
+
+.sms-pin--dimmed {
+  opacity: 0.35;
+  filter: grayscale(0.6);
+}
+
+/* Leaflet chrome — match the app typography. */
+.leaflet-container {
+  font-family: inherit;
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+  line-height: 1.45;
+}
