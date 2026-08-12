@@ -9,12 +9,16 @@
  *  - No secrets to leak (the demo admin password lives in .env, not here)
  *  - One demo school is seeded on first load so the public map has
  *    something to render before the admin creates real records
+ *  - A curated set of site media (drone screencast + five screenshots
+ *    from the project data/ folder) is seeded so the public gallery
+ *    has content for the defence demo
  *  - Concurrent tabs share state via the 'storage' event
  *
  * The seeded demo school sits at the temporary centre and is marked
  * `isPublic: true`. Its `description` includes an obvious "TODO" hint
  * so a reviewer can tell at a glance that this is placeholder data,
- * not a fabricated real school record.
+ * not a fabricated real school record. None of the seeded media carry
+ * GPS metadata — per spec Section 12 they keep null coordinates.
  */
 
 import type { School, SchoolInput, ValidationIssue } from '../../types/school';
@@ -162,7 +166,44 @@ function seedIfEmpty(): void {
   };
 
   writeCollection<School>(KEYS.schools, [demoSchool]);
-  writeCollection<Media>(KEYS.media, []);
+
+  // Curated media seeded from the project data/ folder (copied to
+  // public/media/). These are screen captures of the site exploration
+  // session (2026-08-11): the drone screencast plus five screenshots.
+  // None carry GPS metadata, so lat/lng stay null per spec Section 12.
+  const curatedMedia: Media[] = [
+    {
+      id: generateId(),
+      title: 'Drone site tour — screencast (2026-08-11)',
+      description:
+        'Screen capture of the site exploration flight (~170 s, 1600×900). ' +
+        'Non-georeferenced screen capture used as visual site evidence.',
+      mediaType: 'drone_video',
+      fileUrl: '/media/site-tour-2026-08-11.mp4',
+      thumbnailUrl: '/media/captures/site-221205.png',
+      latitude: null,
+      longitude: null,
+      featureId: null,
+      isPublic: true,
+      createdAt: now,
+    },
+    ...[['site-220320', '22:03'], ['site-220437', '22:04'], ['site-220640', '22:06'], ['site-220919', '22:09'], ['site-221205', '22:12']].map(
+      ([slug, time]): Media => ({
+        id: generateId(),
+        title: `Site capture — ${time} (2026-08-11)`,
+        description: 'Screen capture from the site exploration session (2026-08-11). Non-georeferenced.',
+        mediaType: 'site_photo',
+        fileUrl: `/media/captures/${slug}.png`,
+        thumbnailUrl: null,
+        latitude: null,
+        longitude: null,
+        featureId: null,
+        isPublic: true,
+        createdAt: now,
+      }),
+    ),
+  ];
+  writeCollection<Media>(KEYS.media, curatedMedia);
   writeCollection<SiteFeature>(KEYS.siteFeatures, []);
   localStorage.setItem(KEYS.seeded, '1');
 }
