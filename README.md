@@ -1,133 +1,59 @@
-# Interactive School Mapping System
+# FPI Campus Mapping System
 
-> **Academic MVP** — ND2 Computer Science project. Study area: Ilaro/Oja-Odan Road, Ogun State, Nigeria. Documented land area: **898.116 ha**.
+A web-based **spatial information management system** for Federal Polytechnic
+Ilaro: an interactive campus map (view, search, identify buildings, roads,
+facilities) backed by a **PostgreSQL/PostGIS** spatial database with an
+**Express REST API** and an **admin dashboard** for full CRUD management of
+campus features.
 
-A web-based interactive mapping system that lets users explore the school location, school information, and available mapped/site information through an interactive geographic interface. Public users can browse the map and search schools; administrators can sign in and manage the underlying data.
+```
+QGIS (data preparation)
+   │  export → GeoJSON   (map_interface/public/data)
+   ▼
+PostgreSQL/PostGIS ── Express API (server/) ── React web map (public)
+   ▲                          │                   + React admin dashboard
+   └──── seed + admin CRUD ───┘
+```
 
-This project follows a 35-section specification. The full implementation plan lives in [`.hermes/plans/2026-08-11_2250-school-mapping-mvp.md`](./.hermes/plans/2026-08-11_2250-school-mapping-mvp.md).
+## Repository layout
 
----
-
-## Current status
-
-**The full MVP is built — including Phase K (Supabase).** Phases A–L of the implementation plan are complete: scaffold, type system, config, service adapters (local + Supabase), public pages (Home, Map, Schools, School details, Login), the Leaflet map with OSM + Esri satellite base layers and a layer control, school search/filter, admin authentication with CRUD for schools, site features and media, the site-media gallery, and the GeoJSON study-area boundary loader. 80 unit tests pass and the production build is clean.
-
-The project now ships with **real project assets** in `data/` (48 site screenshots + a drone screencast video, provided 2026-08-11). They are screen captures with **no GPS/EXIF metadata**, so they are wired in as *site media* (a curated subset is seeded and copied to `public/media/`), not as georeferenced layers. See "Why no real coordinates" below.
+| Path | What it is |
+|---|---|
+| `map_interface/` | React + TypeScript + Vite + Leaflet web app (public map **and** admin dashboard at `#/admin`) |
+| `server/` | Node/Express REST API over PostGIS (public reads + guarded CRUD) |
+| `server/db/schema.sql` | PostGIS schema (buildings, roads, walkways, entrances, boundary) |
+| `server/scripts/` | `migrate.js` (apply schema) and `seed.js` (import GeoJSON → PostGIS) |
+| `docker-compose.yml` | One-command PostGIS 16 database |
+| `bounding_box_fpi.py`, `scrape_base_data.py`, `compilation.txt` | Data-acquisition tooling (Overpass API + FPI website crawler + QGIS query) |
+| `PROJECT_DOCUMENTATION.md` | Full system documentation (project/methodology write-up) |
+| `SYSTEM_DIAGRAMS.md` | Mermaid sources for the Chapter 3 diagrams (DFD L0/L1, E-R, flowchart) — rendered to `figures/fig-3-*.png` |
 
 ## Quick start
 
-Requires Node ≥ 20 and pnpm ≥ 11.
-
 ```bash
+# 1. Database (Docker route)
+docker compose up -d
+#    or native PostgreSQL 16 + PostGIS: create role/db matching server/.env
+
+# 2. Backend API
+cd server
 pnpm install
-cp .env.example .env       # optional — defaults are fine for local dev
-pnpm dev                   # http://127.0.0.1:5173/
+pnpm db:setup          # migrate + seed from GeoJSON exports
+pnpm dev               # API on http://localhost:4000
+
+# 3. Web app (another terminal)
+cd map_interface
+pnpm install
+pnpm dev               # open http://localhost:5173
 ```
 
-Build, preview & test:
+The public map loads from `/api/features` (via the Vite dev proxy). Open
+**http://localhost:5173/#/admin** for the admin dashboard — default
+credentials `admin` / `admin123` (override with `ADMIN_USERNAME` /
+`ADMIN_PASSWORD`).
 
-```bash
-pnpm build                 # type-check + production bundle to dist/
-pnpm preview               # serve dist/ locally
-pnpm test                  # vitest unit tests (80 tests)
-```
+**Production-style single-port run:** `pnpm --dir map_interface build`, then
+`pnpm --dir server start` — Express serves the built app and the API together
+on port 4000.
 
-Demo admin login (local backend): `admin@school.local` / `admin123` (set via `VITE_DEMO_ADMIN_EMAIL` / `VITE_DEMO_ADMIN_PASSWORD` in `.env`).
-
-## Running with Supabase (Phase K)
-
-The app ships with two data backends; the default (`local`) needs nothing but a browser. To use **real multi-user persistence**:
-
-1. Create a free Supabase project.
-2. Apply the SQL migrations in `supabase/migrations/` in order — 0001 schema → 0002 RLS → 0003 storage → 0004 seed. Paste them into the project's SQL editor, or run them locally with the Supabase CLI (requires Docker): `npx supabase init` once to generate `supabase/config.toml`, then `npx supabase start` and `npx supabase db push`.
-3. Create the administrator in **Auth → Users → Add user** using an email that is in the `admins` table (the seed adds `admin@school.local`).
-4. Copy `.env.example` → `.env` and set:
-   ```bash
-   VITE_DATA_BACKEND=supabase
-   VITE_SUPABASE_URL=https://<project-ref>.supabase.co
-   VITE_SUPABASE_ANON_KEY=<anon key>
-   ```
-5. `pnpm dev` — schools, media and site features now live in Postgres; media file uploads go to the `school-media` Storage bucket; the admin dashboard's **Reset demo data** button calls the guarded `reset_demo_data()` RPC.
-
-**Security model (Row Level Security):** anonymous visitors can read only `is_public = true` rows; administrators (emails in the `admins` table) have full read/write; nothing can be written anonymously. To grant or revoke admin access, add/remove emails in the `admins` table.
-
-## Tech stack
-
-| Layer            | Choice                                  |
-|------------------|------------------------------------------|
-| Frontend         | React 19 + Vite 6 + TypeScript 5.7        |
-| Styling          | Tailwind CSS 4 (CSS-based config)         |
-| Routing          | react-router-dom 7                       |
-| Map              | Leaflet 1.9 + react-leaflet 5             |
-| Tiles            | OpenStreetMap (no API key)                |
-| Backend (optional) | Supabase (Postgres + Auth + Storage) — switch with `VITE_DATA_BACKEND=supabase` |
-| Local default    | In-memory + localStorage adapter (no Supabase needed) |
-| Package manager  | pnpm 11                                  |
-
-## Why no real coordinates (yet)
-
-The spec is explicit (Sections 20, 33, 35) that the system must NOT fabricate coordinates, site boundary, building locations, roads, facility locations, land measurements, or school locations. The supplied assets in `data/` were inspected: all 48 PNGs have **zero EXIF/GPS metadata** and the MP4 has **no GPS track** (`ffprobe`/PIL checks), so they are screen captures — usable as site media, not as georeferenced data. Every coordinate is therefore marked with a `TODO: REQUIRED PROJECT GIS DATA` comment and the map centres on a clearly-labelled `TEMPORARY_CENTRE` constant.
-
-This is a feature, not a gap. A defence panel can see exactly where real data plugs in: the boundary loader in `src/services/studyAreaBoundary.ts`, which auto-renders a WGS84 GeoJSON file dropped at `public/data/study-area-boundary.geojson` (see next section), `src/config/studyArea.ts` (temporary centre), and `src/config/layers.ts` (layer wiring).
-
-## Wiring in the real study-area boundary
-
-The map is ready to render the real property boundary the moment the survey data is obtained — no code changes or rebuilds.
-
-1. Export / convert the survey boundary to **WGS84 GeoJSON** (Polygon, MultiPolygon, Feature, or FeatureCollection; positions `[lng, lat]`, EPSG:4326) and save it as `public/data/study-area-boundary.geojson`.
-2. Refresh the app.
-
-The map then draws the polygon, auto-frames to it, and replaces the amber "temporary map centre" banner with a teal confirmation showing the area **computed from the polygon** — kept deliberately separate from the documented 898.116 ha value, which remains a stated figure from the brief.
-
-```bash
-# Shapefile (EPSG:32631 example) → WGS84 GeoJSON
-ogr2ogr -f GeoJSON -t_srs EPSG:4326 public/data/study-area-boundary.geojson input.shp
-```
-
-Full format notes and conversion commands: [`public/data/README.md`](./public/data/README.md).
-
-## Project data
-
-- `data/` — the original assets supplied by the student (48 PNG screenshots + `Screencast from 2026-08-11 22-20-32.mp4`). **Gitignored and never modified.**
-- `public/media/` — curated copies (video + 5 representative screenshots with safe filenames) served by the app. **Gitignored**; re-copy from `data/` if missing:
-  ```bash
-  mkdir -p public/media/captures
-  cp 'data/Screencast from 2026-08-11 22-20-32.mp4' public/media/site-tour-2026-08-11.mp4
-  cp 'data/Screenshot from 2026-08-11 22-03-20.png' public/media/captures/site-220320.png
-  cp 'data/Screenshot from 2026-08-11 22-04-37.png' public/media/captures/site-220437.png
-  cp 'data/Screenshot from 2026-08-11 22-06-40.png' public/media/captures/site-220640.png
-  cp 'data/Screenshot from 2026-08-11 22-09-19.png' public/media/captures/site-220919.png
-  cp 'data/Screenshot from 2026-08-11 22-12-05.png' public/media/captures/site-221205.png
-  ```
-- The local adapter seeds these curated media records (plus one placeholder demo school) on first load; the admin dashboard's **Reset demo data** button restores them.
-
-## Project structure
-
-```
-src/
-├── main.tsx              # React entry point
-├── routes/router.tsx     # Route table (one file, easy to extend)
-├── index.css             # Tailwind 4 import + Leaflet CSS + design tokens
-├── lib/leafletIconFix.ts # Webpack/Vite-friendly default marker assets
-├── components/           # (Phases D–J)
-├── pages/                # (Phases D, F, G)
-├── services/             # (Phase C — local adapter, Phase K — Supabase)
-├── types/                # (Phase B)
-├── config/               # (Phase B — studyArea, layers, map config)
-└── hooks/                # (Phases C, H)
-supabase/migrations/      # (Phase K — schema, RLS, storage, seed)
-```
-
-## Environment variables
-
-See [`.env.example`](./.env.example). The defaults work for local development. To use the Supabase backend, set `VITE_DATA_BACKEND=supabase` plus `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in your local `.env` (which is gitignored).
-
-## Development workflow
-
-1. Each phase ends with a **checkpoint**: I run `pnpm build`, start the dev server, curl it, and report what works. You can stop me or redirect me at any checkpoint.
-2. Geography is configuration, not code. The single source of truth for the 898.116 ha value and the temporary centre is `src/config/studyArea.ts`.
-3. Every data call goes through a service interface (`src/services/*.ts`). Two adapters exist (local + Supabase); `VITE_DATA_BACKEND` picks the active one.
-
-## License
-
-Academic project. All rights reserved by the project author.
+See `server/README.md` for API details and the feature data model.

@@ -1,0 +1,34 @@
+# ────────────────────────────────────────────────────────────────
+# FPI Campus Mapping System — spatial database service
+#
+# Spins up the PostgreSQL + PostGIS database used by the backend API
+# (`server/`). Credentials below are the defaults the API connects
+# with when no .env file is present.
+#
+#   docker compose up -d        # start the database
+#   docker compose down         # stop it (data persists in the volume)
+#   docker compose down -v      # stop AND wipe the volume (fresh start)
+# ────────────────────────────────────────────────────────────────
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: fpi_campus_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fpi
+      POSTGRES_PASSWORD: fpi_secret
+      POSTGRES_DB: fpi_campus
+    ports:
+      - '5432:5432'
+    volumes:
+      - fpi_pgdata:/var/lib/postgresql/data
+      # Creates the schema automatically on first boot (empty database).
+      - ./server/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U fpi -d fpi_campus']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  fpi_pgdata:
